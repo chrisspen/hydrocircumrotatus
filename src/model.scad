@@ -2,6 +2,7 @@ use <lib/openscad-extra/tube.scad>;
 //use <lib/gear_library.scad>;
 use <lib/getriebe.scad>;
 use <lib/openscad-extra/torus.scad>;
+use <lib/openscad-extra/countersink.scad>;
 
 $fn = 100;
 
@@ -18,6 +19,11 @@ outer_lip_d = .25;
 outer_lip_e = 1;
 outer_lip_f = .25;
 outer_lip_g = 1;
+
+arch_diameter = 30;
+arch_offset = -turntable_base_height/2/2+5/2;
+arch_angle = 36;
+column_diameter = 5;
 
 inside_diameter = diameter-outer_wall_thickness*2;
 
@@ -83,7 +89,7 @@ module turntable_top(extra_height=5, simple=0){
         }
         
         // drainage hole
-        if(!simple)
+        //if(!simple)
         cylinder(d=drainage_hole_diameter, h=100, center=true);
     }
     
@@ -141,16 +147,7 @@ module turntable_roller(){
     cylinder(d=5, h=outer_lip_e, center=true);
 }
 
-module water_funnel(){
-    cylinder(d1=diameter/2, d2=diameter, h=5, center=true, $fn=100);
-}
-
 module turntable_base(simple=0){
-    arch_diameter = 30;
-    arch_offset = -turntable_base_height/2/2+5/2;
-    
-    arch_angle = 36;
-    column_diameter = 5;
     
     difference(){
         cylinder(d=diameter, h=turntable_base_height, center=true, $fn=100);
@@ -168,12 +165,18 @@ module turntable_base(simple=0){
         
     }// end diff
     
+    // bulk head to strengthen screw hole
+    color("green")
+    translate([0,-60,3.9])
+    rotate([90,0,0])
+    cylinder(d2=12, d1=4, h=13, center=true);
+    
     if(!simple){
         for(i=[0:arch_angle:360])
         rotate([0,0,i]){
             translate([0,-diameter/2+column_diameter/2,-10])
             cylinder(d=column_diameter, h=30, center=true);
-            /*
+            
             // small bottom flair
             translate([0,-diameter/2+column_diameter/2,-20])
             torus(r1=0.25, r2=column_diameter/2);
@@ -189,7 +192,7 @@ module turntable_base(simple=0){
             // big top flair
             translate([0,-diameter/2+column_diameter/2,3.5])
             torus(r1=0.5, r2=column_diameter/2);
-            */
+            
         }
         
         translate([0,0,-21.5])
@@ -208,16 +211,22 @@ module make_small_gear_cutout(){
     }
 }
 
-module water_cup(size=10){
+module arch_recess_cutout(count=180){
     difference(){
-        sphere(d=size);
-        sphere(d=size-1*2);
-        translate([0,0,size/2])cube([size*2, size*2, size], center=true);
-        translate([0,-size/2,0])cube([size*2, size, size*2], center=true);
+        //color("blue")
+        translate([0,0,-23])tube(d=diameter+2, t=1.5, h=10);
+    
+        // archway cutouts
+        for(i=[0:arch_angle:count])
+        rotate([0,0,i+arch_angle/2])
+        translate([0,0,-arch_offset/2 - 5/2 - 30])
+        rotate([90,0,0])
+        //color("red")
+        cylinder(d=arch_diameter+5, h=diameter*2, center=true);
     }
 }
 
-module make_gears(a=1, b=1){
+module make_gears(a=1, b=1, show_axle=0){
     rotate([0,0,90])
     arrow_bevel_gear_pair(
         modul = 1,
@@ -228,6 +237,7 @@ module make_gears(a=1, b=1){
         //bore_wheel = 4,
         //bore_wheel = drainage_hole_diameter,
         bore_wheel=diameter - outer_wall_thickness*6.5,
+        bore_curler=2.75,
         engagement_angle = 20,
         angle_of_inclination = 35,
         together_build = 1,
@@ -235,27 +245,29 @@ module make_gears(a=1, b=1){
         show_b=b
     );
     if(b){
-        
         translate([0,0,26.6]){
+            
+            // axle marker
+            if(show_axle)
             rotate([90,0,0]){
                 color("red")
                 cylinder(d=1, h=1000, center=true);
             }
-            //for(i=[0:30:360])
-            //rotate([0,i,0])translate([0,-49,-17])rotate([0,-90,0])scale([1,10,1])water_cup();
             
             // blades
             for(i=[0:30:360])
+            color("red")
             rotate([0,i,0])
-            translate([0,-26,-17])
-            rotate([0,45,0])
-            cube([1, 45, 13], center=true);
+            translate([0,-26+5,-17])
+            rotate([0,50,0])
+            translate([0,0,1])
+            cube([1, 60, 13+2], center=true);
             
             // inner wall
-            color("green")translate([0,-26,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=45, center=true);
+            color("green") translate([0,-26+5,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=60, center=true);
             
             // end cap
-            color("red") translate([0,-3.5,0]) rotate([90,0,0]) tube(d=45, t=10, h=1, center=true);
+            color("red") translate([0,-3.5+12.5,0]) rotate([90,0,0]) tube(d=44, t=10, h=1, center=true);
         }
     }
 }
@@ -263,16 +275,18 @@ module make_gears(a=1, b=1){
 //intersection(){
 // main turntable top
 if(1) difference(){
-    intersection(){
-        turntable_top(simple=1);
-        translate([0,0,-6]) turntable_mesh_outline_top();
+    union(){
+        intersection(){
+            turntable_top(simple=0);
+            translate([0,0,-6]) turntable_mesh_outline_top();
+        }
+        //rotate([0,180,0]) make_gears(a=1, b=0);//TODO:enable
     }
     color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
-rotate([0,180,0]) make_gears(a=1, b=1);
+rotate([0,180,0]) make_gears(a=0, b=1, show_axle=1);
 //}
-
 
 //color("blue")
 //translate([0,-53+3,-26.6])make_small_gear_cutout();
@@ -283,7 +297,7 @@ turntable_mesh_outline_top();
 color("blue")translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
-if(1) translate([0,0,-3-roller_diameter/2-gap/2]) difference(){
+if(0) translate([0,0,-3-roller_diameter/2-gap/2]) difference(){
 color("green") turntable_roller_ring();
 translate([1,-200/2,-200/2]) cube([200,200,200]);
 }
@@ -294,15 +308,39 @@ turntable_mesh_outline_bottom();
 color("blue")translate([2,-200/2,-200/2]) cube([200,200,200]);
 }
 
-if(0)
-translate([0,0,-15])
-water_funnel();
+module turntable_base_complete(simple=0){
+    difference(){
+        intersection(){
+            translate([0,0,-(30+gap)]) turntable_base(simple=simple);
+            translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
+        }
+        //color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
+        
+        translate([0,0,-26.6])
+        translate([0,-diameter/2,0])
+        rotate([90,0,0])
+        make_countersink();
+        
+        //if(!simple)
+        //arch_recess_cutout();//production
+    }
+}
 
 if(1) difference(){
-    intersection(){
-        translate([0,0,-(30+gap)]) turntable_base();
-        translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
-    }
+    turntable_base_complete(simple=1);
+    //intersection(){
+    //    translate([0,0,-(30+gap)]) turntable_base();
+    //    translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
+    //}
     color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
+    /*
+    translate([0,0,-26.6])
+    translate([0,-diameter/2,0])
+    rotate([90,0,0])
+    make_countersink();
+    */
+    //arch_recess_cutout(count=arch_angle);//test
+    //arch_recess_cutout();//production
 }
+
 
