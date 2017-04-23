@@ -443,11 +443,31 @@ module arrow_bevel_gear(modul, number_of_teeth, partial_cone_angle, tooth_width,
     modul_innen = modul-tooth_width / rg_aussen;
 
     union(){
-        bevel_gear (modul, number_of_teeth, partial_cone_angle, tooth_width, bore, engagement_angle, angle_of_inclination); // bottom half
+        // bottom half
+        //modul, number_of_teeth, partial_cone_angle, tooth_width, bore, engagement_angle = 20, angle_of_inclination = 0
+        bevel_gear(
+            modul=modul,
+            number_of_teeth=number_of_teeth,
+            partial_cone_angle=partial_cone_angle-0,
+            tooth_width=tooth_width,
+            bore=bore,
+            engagement_angle=engagement_angle,
+            angle_of_inclination=angle_of_inclination);
+        
+        // upper half
         translate([0,0, hoehe_f-hoehe_fk])
         rotate(a = -gamma, v = [0,0,1])
         mirror([0,1,0])
-        bevel_gear (modul_innen, number_of_teeth, partial_cone_angle, tooth_width, bore, engagement_angle, angle_of_inclination); // upper half
+        //modul, number_of_teeth, partial_cone_angle, tooth_width, bore, engagement_angle = 20, angle_of_inclination = 0
+        bevel_gear(
+            modul=modul_innen,
+            number_of_teeth=number_of_teeth,
+            partial_cone_angle=partial_cone_angle,
+            tooth_width=tooth_width,
+            bore=bore,
+            engagement_angle=engagement_angle,
+            angle_of_inclination=angle_of_inclination); 
+        
     }
 }
 
@@ -461,7 +481,7 @@ axis_angle = angle between the axes of the wheel and pinion
     bore_curler = diameter of the center bores of the pinion
     engagement_angle = engagement_angle, standard value = 20 ° according to DIN 867
 angle_of_inclination = helix angle, standard value = 0 ° */
-module bevel_gear_pair(modul, tooth_number_wheel, tooth_number_curve, axis_angle = 90, tooth_width, bore_wheel, bore_curler, engagement_angle = 20, angle_of_inclination = 0, together_build=1){
+module bevel_gear_pair(modul, tooth_number_wheel, tooth_number_curve, axis_angle = 90, tooth_width, bore_wheel, bore_curler, engagement_angle = 20, angle_of_inclination = 0, together_build=1, show_a=1, show_b=1){
      
     // Dimensions calculations
     r_rad = modul * tooth_number_wheel / 2; // partial cone radius of the wheel
@@ -491,20 +511,22 @@ module bevel_gear_pair(modul, tooth_number_wheel, tooth_number_curve, axis_angle
 
     // drawing
     // Wheel
+    if(show_a)
     rotate([0,0,180 * (1-game) / tooth_number_wheel * turning])
     bevel_gear (modul, tooth_number_wheel, delta_rad, tooth_width, bore_wheel, engagement_angle, angle_of_inclination);
 
     // Pinions
-    mirror([0,1,0])
-    if (together_build == 1)
-        //mirror([0,1,0])
-        translate([-height_f_ritzel * cos(90-axis_angle), 0, height_f_rad - height_f_ritzel * sin(90-axis_angle)])
-            rotate([0, axis_angle, 0])
+    if(show_b){
+        mirror([0,1,0])
+        if (together_build == 1)
+            //mirror([0,1,0])
+            translate([-height_f_ritzel * cos(90-axis_angle), 0, height_f_rad - height_f_ritzel * sin(90-axis_angle)])
+                rotate([0, axis_angle, 0])
+                    bevel_gear (modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
+        else
+            translate([rkf_ritzel * 2 + modul + rkf_rad, 0,0])
                 bevel_gear (modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
-    else
-        translate([rkf_ritzel * 2 + modul + rkf_rad, 0,0])
-            bevel_gear (modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
-
+    }
 }
 
 /* Arrow-bevel_gear_pair with any axis_angle; Uses the module "pfeilkegelrad"
@@ -517,7 +539,7 @@ axis_angle = angle between the axes of the wheel and pinion
     bore_curler = diameter of the center bores of the pinion
     engagement_angle = engagement_angle, standard value = 20 ° according to DIN 867
     angle_of_inclination = helix angle, standard value = 0 ° */
-module arrow_bevel_gear_pair (modul, tooth_number_wheel, tooth_number_curve, axis_angle = 90, tooth_width, bore_wheel, bore_curler, engagement_angle = 20, angle_of_inclination = 10, together_building = 1){
+module arrow_bevel_gear_pair (modul, tooth_number_wheel, tooth_number_curve, axis_angle = 90, tooth_width, bore_wheel, bore_curler, engagement_angle = 20, angle_of_inclination = 10, together_building = 1, show_a=1, show_b=1){
  
     r_rad = modul * tooth_number_wheel / 2; // partial cone radius of the wheel
     delta_rad = atan (sin(axis_angle) / (tooth_number_curve / tooth_number_wheel + cos(axis_angle))); // Taper angle of the wheel
@@ -545,19 +567,21 @@ module arrow_bevel_gear_pair (modul, tooth_number_wheel, tooth_number_curve, axi
     turning = is_even(tooth_number_curve);
 
     // Wheel
+    if(show_a)
     rotate([0,0,180 * (1-game) / tooth_number_wheel * turning])
     arrow_bevel_gear(modul, tooth_number_wheel, delta_rad, tooth_width, bore_wheel, engagement_angle, angle_of_inclination);
 
     // Pinions
-    mirror([0,1,0])
-    if (together_building == 1)
-        translate([-height_f_ritzel * cos(90-axis_angle), 0, height_f_rad-height_f_ritzel * sin(90-axis_angle)])
-            rotate([0, axis_angle, 0])
+    if(show_b){
+        mirror([0,1,0])
+        if (together_building == 1)
+            translate([-height_f_ritzel * cos(90-axis_angle), 0, height_f_rad-height_f_ritzel * sin(90-axis_angle)])
+                rotate([0, axis_angle, 0])
+                    arrow_bevel_gear(modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
+        else
+            translate([rkf_ritzel * 2 + modul + rkf_rad, 0,0])
                 arrow_bevel_gear(modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
-    else
-        translate([rkf_ritzel * 2 + modul + rkf_rad, 0,0])
-            arrow_bevel_gear(modul, tooth_number_curve, delta_critical, tooth_width, bore_curler, engagement_angle, angle_of_inclination);
-
+    }
 }
 
 //spur_gear (modul = 1, number_of_teeth = 30, height = 5, bore = 0, engagement_angle = 20, angle_of_inclination = 20);
@@ -576,5 +600,8 @@ module arrow_bevel_gear_pair (modul, tooth_number_wheel, tooth_number_curve, axi
 
 //bevel_gear_pair (modul = 1, tooth_number_wheel = 30, tooth_number_curve = 11, axis_angle = 100-10, tooth_width = 5, bore = 4, engagement_angle = 20, angle_of_inclination = 20, together_build = 1);
 
-//arrow_bevel_gear_pair (modul = 1, tooth_number_wheel = 30, tooth_number_curve = 11, axis_angle = 100-10, tooth_width = 5, bore = 4, engagement_angle = 20, angle_of_inclination = 30, together_build = 1);
+arrow_bevel_gear_pair (modul = 1, tooth_number_wheel = 30, tooth_number_curve = 11, axis_angle = 90, tooth_width = 5,
+    bore_wheel = 4,
+    bore_curler = 1,
+    engagement_angle = 20, angle_of_inclination = 30, together_build = 1, show_a=1, show_b=1);
 
