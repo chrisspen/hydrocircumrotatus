@@ -66,17 +66,32 @@ module turntable_top(extra_height=5, simple=0){
                     cylinder(d=(diameter-outer_wall_thickness*2)*2/3, h=100, center=true);
                 }
                 
-                // inner support grate
+                // middle support grate
                 difference(){
                     union(){
                         // support grate
-                        for(i=[0:10:180])
+                        //for(i=[0:10:180])
+                        for(i=[0:20:180])
                         rotate([0,0,i+5])
                         translate([0,0,outer_wall_thickness/2])
                         cube([diameter-outer_wall_thickness/2, 1, outer_wall_thickness], center=true);
                     }
                     // grate drainage hole
                     cylinder(d=(diameter-outer_wall_thickness*2)*1/3, h=100, center=true);
+                }
+                
+                // inner support grate
+                difference(){
+                    union(){
+                        // support grate
+                        //for(i=[0:10:180])
+                        for(i=[0:20:180])
+                        rotate([0,0,i+5+10])
+                        translate([0,0,outer_wall_thickness/2])
+                        cube([diameter-outer_wall_thickness/2, 1, outer_wall_thickness], center=true);
+                    }
+                    // grate drainage hole
+                    cylinder(d=(diameter-outer_wall_thickness*2)*1/10, h=100, center=true);
                 }
                 
                 // anti-drip lip
@@ -130,7 +145,7 @@ module turntable_mesh_outline_bottom(h=50){
     difference(){
         union(){
             // outer most ring
-            cylinder(d=diameter+1, h=h);
+            cylinder(d=diameter+20, h=h);
             
             // upper most ring
             translate([0,0,2])
@@ -149,6 +164,8 @@ module turntable_roller(){
 
 module turntable_base(simple=0){
     
+    cone_offset = -3.5;
+    
     difference(){
         cylinder(d=diameter, h=turntable_base_height, center=true, $fn=100);
         cylinder(d=diameter-outer_wall_thickness*2, h=turntable_base_height+1, center=true, $fn=100);
@@ -166,10 +183,12 @@ module turntable_base(simple=0){
     }// end diff
     
     // bulk head to strengthen screw hole
+    for(i=[0:1])
+    mirror([0,i,0])
     color("green")
-    translate([0,-60,3.9])
+    translate([0,-60-cone_offset/2,3.9])
     rotate([90,0,0])
-    cylinder(d2=12, d1=4, h=13, center=true);
+    cylinder(d2=12, d1=4, h=13+cone_offset, center=true);
     
     if(!simple){
         for(i=[0:arch_angle:360])
@@ -177,26 +196,33 @@ module turntable_base(simple=0){
             translate([0,-diameter/2+column_diameter/2,-10])
             cylinder(d=column_diameter, h=30, center=true);
             
-            // small bottom flair
-            translate([0,-diameter/2+column_diameter/2,-20])
-            torus(r1=0.25, r2=column_diameter/2);
+            // bottom column base
+            color("red")
+            translate([0,-diameter/2+column_diameter/2,-21.5])
+            cube([7,7,5+2], center=true);
             
-            // big bottom flair
-            translate([0,-diameter/2+column_diameter/2,-20.5])
+            // big bottom column flair
+            translate([0,-diameter/2+column_diameter/2,-20.5+5/2+.25])
             torus(r1=0.5, r2=column_diameter/2);
             
-            // small top flair
-            translate([0,-diameter/2+column_diameter/2,3.5-0.5])
-            torus(r1=0.25, r2=column_diameter/2);
-            
-            // big top flair
+            // big top column flair
             translate([0,-diameter/2+column_diameter/2,3.5])
             torus(r1=0.5, r2=column_diameter/2);
             
         }
         
-        translate([0,0,-21.5])
-        tube(d=diameter-outer_wall_thickness*.25, t=outer_wall_thickness*.75, h=1);
+        // bottom ring flair
+        translate([0,0,-21])
+        tube(d=diameter-outer_wall_thickness*.5, t=outer_wall_thickness*.5, h=1);
+        
+        // middle reinforcing ring
+        //translate([0,0,5])
+        //tube(d=diameter-outer_wall_thickness*.5, t=outer_wall_thickness*.5, h=1);
+        translate([0,0,4])
+        tube(d=diameter-outer_wall_thickness*0, t=outer_wall_thickness*1, h=.5);
+        
+        translate([0,0,4])
+        tube(d=diameter-outer_wall_thickness+0.5, t=0.5, h=15);
     }
     
 }
@@ -285,6 +311,7 @@ if(1) difference(){
     color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
+if(0)
 rotate([0,180,0]) make_gears(a=0, b=1, show_axle=1);
 //}
 
@@ -316,6 +343,8 @@ module turntable_base_complete(simple=0){
         }
         //color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
         
+        for(i=[0:1])
+        mirror([0,i,0])
         translate([0,0,-26.6])
         translate([0,-diameter/2,0])
         rotate([90,0,0])
@@ -326,8 +355,8 @@ module turntable_base_complete(simple=0){
     }
 }
 
-if(1) difference(){
-    turntable_base_complete(simple=1);
+if(0) difference(){
+    turntable_base_complete(simple=0);
     //intersection(){
     //    translate([0,0,-(30+gap)]) turntable_base();
     //    translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
