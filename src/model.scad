@@ -94,12 +94,13 @@ module turntable_top(extra_height=5, simple=0){
                     cylinder(d=(diameter-outer_wall_thickness*2)*1/10, h=100, center=true);
                 }
                 
-                // anti-drip lip
-                cylinder(
-                    d2=drainage_hole_diameter+outer_wall_thickness,
-                    d1=drainage_hole_diameter,
-                    h=outer_wall_thickness/2, center=true);
             }
+            
+            // anti-drip lip
+            cylinder(
+                d2=drainage_hole_diameter+outer_wall_thickness,
+                d1=drainage_hole_diameter,
+                h=outer_wall_thickness/2, center=true);
             
         }
         
@@ -183,8 +184,11 @@ module turntable_base(simple=0){
     }// end diff
     
     // bulk head to strengthen screw hole
-    for(i=[0:1])
-    mirror([0,i,0])
+    //for(i=[0:1])
+    //mirror([0,i,0])
+    for(i=[0:10])
+    if(i == 0 || i == 3 || i == 5 || i == 7)
+    rotate([0,0,-i*36])
     color("green")
     translate([0,-60-cone_offset/2,3.9])
     rotate([90,0,0])
@@ -252,24 +256,44 @@ module arch_recess_cutout(count=180){
     }
 }
 
-module make_gears(a=1, b=1, show_axle=0){
-    rotate([0,0,90])
-    arrow_bevel_gear_pair(
-        modul = 1,
-        tooth_number_wheel = 110-5,
-        tooth_number_curve = 11+40,
-        axis_angle = 90,
-        tooth_width = 5,
-        //bore_wheel = 4,
-        //bore_wheel = drainage_hole_diameter,
-        bore_wheel=diameter - outer_wall_thickness*6.5,
-        bore_curler=3,
-        engagement_angle = 20,
-        angle_of_inclination = 35,
-        together_build = 1,
-        show_a=a,
-        show_b=b
-    );
+module make_gears(a=1, b=1, show_axle=0, show_blades=1, show_cutouts=0){
+    difference(){
+        rotate([0,0,90])
+        arrow_bevel_gear_pair(
+            modul = 1,
+            tooth_number_wheel = 110-5,
+            tooth_number_curve = 11+40,
+            axis_angle = 90,
+            tooth_width = 5,
+            //bore_wheel = 4,
+            //bore_wheel = drainage_hole_diameter,
+            bore_wheel=diameter - outer_wall_thickness*6.5,
+            bore_curler=3,
+            engagement_angle = 20,
+            angle_of_inclination = 35,
+            together_build = 1,
+            show_a=a,
+            show_b=b
+        );
+        
+        if(show_cutouts){
+            translate([0,-50,26.6])
+            rotate([90,0,0]){
+                difference(){
+                    color("blue")
+                    cylinder(d=40, h=10, center=true);
+                    
+                    cylinder(d=3+5, h=20, center=true);
+                        
+                    for(i=[0:6])
+                    rotate([0,0,i*60])
+                    translate([0,-10.5,0])
+                    cube([3,20,20], center=true);
+                }
+            }
+        }
+    }
+    
     if(b){
         translate([0,0,26.6]){
             
@@ -280,40 +304,118 @@ module make_gears(a=1, b=1, show_axle=0){
                 cylinder(d=1, h=1000, center=true);
             }
             
-            // blades
-            for(i=[0:30:360])
-            color("red")
-            rotate([0,i,0])
-            translate([0,-26+5,-17])
-            rotate([0,50,0])
-            translate([0,0,1])
-            cube([1, 60, 13+2], center=true);
-            
-            // inner wall
-            color("green") translate([0,-26+5,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=60, center=true);
-            
-            // end cap
-            color("red") translate([0,-3.5+12.5,0]) rotate([90,0,0]) tube(d=44, t=10, h=1, center=true);
+            if(show_blades){
+                // blades
+                for(i=[0:30:360])
+                color("red")
+                rotate([0,i,0])
+                translate([0,-26+5,-17])
+                rotate([0,50,0])
+                translate([0,0,1])
+                cube([1, 60, 13+2], center=true);
+                
+                // inner wall
+                color("green") translate([0,-26+5,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=60, center=true);
+                
+                // end cap
+                color("red") translate([0,-3.5+12.5,0]) rotate([90,0,0]) tube(d=44, t=10, h=1, center=true);
+            }
         }
     }
 }
 
+module water_guide(hole_offset=-20, hole_size=15){
+    rotate([0,-1,0]){
+        color("blue")
+        difference(){
+            for(i=[0:1])
+            mirror([0,i,0])
+            rotate([10,0,0])
+            translate([0,10/2,0])
+            cube([diameter-outer_wall_thickness*2.5, 10, 1], center=true);
+            
+            translate([hole_offset,0,0])
+            cylinder(d=hole_size-2, h=50, center=true);
+        }
+        
+        // downward chute
+        if(0)
+        difference(){
+            translate([hole_offset,0,-10])
+            tube(d=hole_size, t=1, h=25, center=true);
+        
+            translate([15/2+hole_offset,0,0])
+            cube([15,25,55], center=true);
+             
+            translate([0,0,-23])
+            rotate([90,0,0])
+            cylinder(d=50, h=50, center=true);
+        }
+        
+    }
+    
+    difference(){
+        intersection(){
+            for(i=[0:1])
+            mirror([i,0,0])
+            translate([diameter/2-outer_wall_thickness-5/2,0,-3.5+.8])
+            cube([5,20,12], center=true);
+             
+            union(){
+                translate([0,0,20/2-2])
+                cylinder(d=diameter-outer_wall_thickness*2-1, h=20, center=true);
+            
+                translate([0,0,-20/2-2])
+                cylinder(d=diameter-outer_wall_thickness*2, h=20, center=true);
+            }   
+        }
+
+        color("green")
+        translate([-(diameter/2-outer_wall_thickness-5/2),0,7.25])
+        cube([6,21,12], center=true);    
+        
+        water_guide_holes();
+    }
+    
+}
+
+module water_guide_holes(){
+    for(i=[0:1])
+    mirror([i,0,0])
+    translate([diameter/2,0,-7])
+    rotate([0,90,0])
+    make_countersink(inner=20);
+    
+}
+
+module make_idler_gear(){
+    make_gears(a=0, b=1, show_axle=0, show_blades=0, show_cutouts=1);
+}
+
 //intersection(){
 // main turntable top
-if(0) difference(){
+if(0)
+difference(){
     union(){
         intersection(){
-            turntable_top(simple=0);
+            turntable_top(simple=1);
             translate([0,0,-6]) turntable_mesh_outline_top();
         }
         //rotate([0,180,0]) make_gears(a=1, b=0);//TODO:enable
     }
     color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
+    color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
-if(1)
+if(0)
 rotate([0,180,0]) make_gears(a=0, b=1, show_axle=1);
 //}
+
+if(1)
+rotate([0,180,0]) make_idler_gear();
+
+if(0)
+translate([0,0,-3.5])water_guide();
 
 //color("blue")
 //translate([0,-53+3,-26.6])make_small_gear_cutout();
@@ -343,8 +445,11 @@ module turntable_base_complete(simple=0){
         }
         //color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
         
-        for(i=[0:1])
-        mirror([0,i,0])
+        //for(i=[0:1])
+        //mirror([0,i,0])
+        for(i=[0:10])
+        if(i == 0 || i == 3 || i == 5 || i == 7)
+        rotate([0,0,-i*36])
         translate([0,0,-26.6])
         translate([0,-diameter/2,0])
         rotate([90,0,0])
@@ -352,16 +457,20 @@ module turntable_base_complete(simple=0){
         
         //if(!simple)
         //arch_recess_cutout();//production
+     
+        translate([0,0,-3.5])
+        water_guide_holes();   
     }
 }
 
 if(0) difference(){
-    turntable_base_complete(simple=0);
+    turntable_base_complete(simple=1);
     //intersection(){
     //    translate([0,0,-(30+gap)]) turntable_base();
     //    translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
     //}
-    color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
+    //color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
+    //color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
     /*
     translate([0,0,-26.6])
     translate([0,-diameter/2,0])

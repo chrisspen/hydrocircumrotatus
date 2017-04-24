@@ -1,5 +1,5 @@
-Name,Fill Density Percent
-top.stl,10
-bottom.stl,25
-wheel.stl,10
-
+Name,Fill Density Percent,Shell Thickness
+top.stl,10,1.2
+bottom.stl,25,0.8
+wheel.stl,10,0.8
+guide.stl,25,0.8
