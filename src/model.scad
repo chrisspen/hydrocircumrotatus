@@ -263,7 +263,7 @@ module make_gears(a=1, b=1, show_axle=0){
         //bore_wheel = 4,
         //bore_wheel = drainage_hole_diameter,
         bore_wheel=diameter - outer_wall_thickness*6.5,
-        bore_curler=2.75,
+        bore_curler=3,
         engagement_angle = 20,
         angle_of_inclination = 35,
         together_build = 1,
@@ -300,7 +300,7 @@ module make_gears(a=1, b=1, show_axle=0){
 
 //intersection(){
 // main turntable top
-if(1) difference(){
+if(0) difference(){
     union(){
         intersection(){
             turntable_top(simple=0);
@@ -311,7 +311,7 @@ if(1) difference(){
     color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
-if(0)
+if(1)
 rotate([0,180,0]) make_gears(a=0, b=1, show_axle=1);
 //}
 
