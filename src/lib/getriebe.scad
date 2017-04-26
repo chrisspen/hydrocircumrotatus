@@ -3,14 +3,14 @@ $fn = 96;
 /* Bibliothek für Evolventen-Zahnräder
 
 Enthält die Module
-1. stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of_inclination = 0)
-1. pfeilrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of_inclination = 0)
-3. hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_of_inclination = 0
-4. pfeilhohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_of_inclination = 0)
-5. planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, hoehe, randbreite, bohrung, engagement_angle=20, angle_of_inclination=0)
-6. kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engagement_angle = 20)
-7. pfeilkegelrad(modul, zahnzahl,  teilkegelwinkel, tooth_width, bohrung, engagement_angle = 20, angle_of_inclination=10)
-8. kegelradpaar(modul, tooth_number_wheel, tooth_number_curve, tooth_width, bohrung, engagement_angle = 20, angle_of_inclination=0)
+1. spur_gear(modul, number_of_teeth, height, bore, engagement_angle = 20, angle_of_inclination = 0)
+1. arrow_wheel(modul, number_of_teeth, height, bore, engagement_angle = 20, angle_of_inclination = 0)
+3. hohlrad(modul, number_of_teeth, height, randbreite, engagement_angle = 20, angle_of_inclination = 0
+4. pfeilhohlrad(modul, number_of_teeth, height, randbreite, engagement_angle = 20, angle_of_inclination = 0)
+5. planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, height, randbreite, bore, engagement_angle=20, angle_of_inclination=0)
+6. kegelrad(modul, number_of_teeth, teilkegelwinkel, tooth_width, bore, engagement_angle = 20)
+7. pfeilkegelrad(modul, number_of_teeth,  teilkegelwinkel, tooth_width, bore, engagement_angle = 20, angle_of_inclination=10)
+8. kegelradpaar(modul, tooth_number_wheel, tooth_number_curve, tooth_width, bore, engagement_angle = 20, angle_of_inclination=0)
 
 Beispiele für jedes Modul befinden sich auskommentiert am Ende dieser Datei
 
@@ -85,15 +85,15 @@ function ggt(a,b) =
 
 /*  Stirnrad
     modul = Höhe des Zahnkopfes über dem Teilkreis
-    zahnzahl = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
-    bohrung = Durchmesser der Mittelbohrung
+    number_of_teeth = Anzahl der Radzähne
+    height = Höhe des Zahnrads
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel zur Rotationsachse; 0° = Geradverzahnung */
-module stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of_inclination = 0) {
+module spur_gear(modul, number_of_teeth, height, bore, engagement_angle = 20, angle_of_inclination = 0) {
 
 	// Dimensions-Berechnungen	
-	d = modul * zahnzahl;								// Teilkreisdurchmesser
+	d = modul * number_of_teeth;								// Teilkreisdurchmesser
 	r = d / 2;											// Teilkreisradius
 	alpha_stirn = atan(tan(engagement_angle)/cos(angle_of_inclination));	// Schrägungswinkel im Stirnschnitt
 	db = d * cos(alpha_stirn);							// Grundkreisdurchmesser
@@ -108,18 +108,18 @@ module stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of
 	rho_r = acos(rb/r);									// Abrollwinkel am Teilkreis;
 														// Evolvente beginnt auf Grundkreis und endet an Kopfkreis
 	phi_r = grad(tan(rho_r)-radian(rho_r));				// Winkel zum Punkt der Evolvente auf Teilkreis
-	gamma = rad*hoehe/(r*tan(90-angle_of_inclination));	// Torsionswinkel für Extrusion
+	gamma = rad*height/(r*tan(90-angle_of_inclination));	// Torsionswinkel für Extrusion
 	schritt = rho_ra/16;								// Evolvente wird in 16 Stücke geteilt
-	tau = 360/zahnzahl;									// Teilungswinkel
+	tau = 360/number_of_teeth;									// Teilungswinkel
 
 	// Zeichnung
-	rotate([0,0,-phi_r-90*(1-spiel)/zahnzahl]){				// Zahn auf x-Achse zentrieren;
+	rotate([0,0,-phi_r-90*(1-spiel)/number_of_teeth]){				// Zahn auf x-Achse zentrieren;
 															// macht Ausrichtung mit anderen Rädern einfacher
 
-		linear_extrude(height = hoehe, twist = gamma){
+		linear_extrude(height = height, twist = gamma){
 			difference(){
 				union(){
-					tooth_width = (180*(1-spiel))/zahnzahl+2*phi_r;
+					tooth_width = (180*(1-spiel))/number_of_teeth+2*phi_r;
 					circle(rf);										// Fußkreis	
 					for (rot = [0:tau:360]){
 						rotate (rot){								// "Zahnzahl-mal" kopieren und drehen
@@ -142,29 +142,29 @@ module stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of
 						}
 					}
 				}
-				circle(r = bohrung/2);								// Bohrung
+				circle(r = bore/2);								// Bohrung
 			}
 		}
 	}
 }
 
 
-/*  Pfeilrad; verwendet das Modul "stirnrad"
+/*  Pfeilrad; verwendet das Modul "spur_gear"
     modul = Höhe des Zahnkopfes über dem Teilkreis
-    zahnzahl = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
-    bohrung = Durchmesser der Mittelbohrung
+    number_of_teeth = Anzahl der Radzähne
+    height = Höhe des Zahnrads
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module pfeilrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of_inclination = 0){
+module arrow_wheel(modul, number_of_teeth, height, bore, engagement_angle = 20, angle_of_inclination = 0){
 
-	hoehe = hoehe/2;
+	height = height/2;
 
-	translate([0,0,hoehe]){
+	translate([0,0,height]){
 		union(){
-			stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle, angle_of_inclination);		// untere Hälfte
+			spur_gear(modul, number_of_teeth, height, bore, engagement_angle, angle_of_inclination);		// untere Hälfte
 			mirror([0,0,1]){
-				stirnrad(modul, zahnzahl, hoehe, bohrung, engagement_angle, angle_of_inclination);	// obere Hälfte
+				spur_gear(modul, number_of_teeth, height, bore, engagement_angle, angle_of_inclination);	// obere Hälfte
 			}
 		}
 	}
@@ -173,17 +173,17 @@ module pfeilrad(modul, zahnzahl, hoehe, bohrung, engagement_angle = 20, angle_of
 
 /*	Hohlrad
     modul = Höhe des Zahnkopfes über dem Teilkreis
-    zahnzahl = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
+    number_of_teeth = Anzahl der Radzähne
+    height = Höhe des Zahnrads
 	randbreite = Breite des Randes ab Fußkreis
-    bohrung = Durchmesser der Mittelbohrung
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_of_inclination = 0) {
+module hohlrad(modul, number_of_teeth, height, randbreite, engagement_angle = 20, angle_of_inclination = 0) {
 
 	// Dimensions-Berechnungen	
-	ha = (zahnzahl >= 20) ? 0.02 * atan((zahnzahl/15)/pi) : 0.6;	// Verkürzungsfaktor Zahnkopfhöhe
-	d = modul * zahnzahl;											// Teilkreisdurchmesser
+	ha = (number_of_teeth >= 20) ? 0.02 * atan((number_of_teeth/15)/pi) : 0.6;	// Verkürzungsfaktor Zahnkopfhöhe
+	d = modul * number_of_teeth;											// Teilkreisdurchmesser
 	r = d / 2;														// Teilkreisradius
 	alpha_stirn = atan(tan(engagement_angle)/cos(angle_of_inclination));// Schrägungswinkel im Stirnschnitt
 	db = d * cos(alpha_stirn);										// Grundkreisdurchmesser
@@ -198,18 +198,18 @@ module hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_
 	rho_r = acos(rb/r);												// Evolventenwinkel am Teilkreis;
 																	// Evolvente beginnt auf Grundkreis und endet an Kopfkreis
 	phi_r = grad(tan(rho_r)-radian(rho_r));							// Winkel zum Punkt der Evolvente auf Teilkreis
-	gamma = rad*hoehe/(r*tan(90-angle_of_inclination));				// Torsionswinkel für Extrusion
+	gamma = rad*height/(r*tan(90-angle_of_inclination));				// Torsionswinkel für Extrusion
 	schritt = rho_ra/16;											// Evolvente wird in 16 Stücke geteilt
-	tau = 360/zahnzahl;												// Teilungswinkel
+	tau = 360/number_of_teeth;												// Teilungswinkel
 
 	// Zeichnung
-	rotate([0,0,-phi_r-90*(1+spiel)/zahnzahl])						// Zahn auf x-Achse zentrieren;
+	rotate([0,0,-phi_r-90*(1+spiel)/number_of_teeth])						// Zahn auf x-Achse zentrieren;
 																	// macht Ausrichtung mit anderen Rädern einfacher
-	linear_extrude(height = hoehe, twist = gamma){
+	linear_extrude(height = height, twist = gamma){
 		difference(){
 			circle(r = ra + randbreite);							// Außenkreis
 			union(){
-				tooth_width = (180*(1+spiel))/zahnzahl+2*phi_r;
+				tooth_width = (180*(1+spiel))/number_of_teeth+2*phi_r;
 				circle(rf);											// Fußkreis	
 				for (rot = [0:tau:360]){
 					rotate (rot) {									// "Zahnzahl-mal" kopieren und drehen
@@ -238,32 +238,32 @@ module hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_
 
 /*  Pfeil-Hohlrad; verwendet das Modul "hohlrad"
     modul = Höhe des Zahnkopfes über dem Teilkegel
-    zahnzahl = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
-    bohrung = Durchmesser der Mittelbohrung
+    number_of_teeth = Anzahl der Radzähne
+    height = Höhe des Zahnrads
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module pfeilhohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle = 20, angle_of_inclination = 0) {
+module pfeilhohlrad(modul, number_of_teeth, height, randbreite, engagement_angle = 20, angle_of_inclination = 0) {
 
-	hoehe = hoehe / 2;
-	translate([0,0,hoehe])
+	height = height / 2;
+	translate([0,0,height])
 		union(){
-		hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle, angle_of_inclination);		// untere Hälfte
+		hohlrad(modul, number_of_teeth, height, randbreite, engagement_angle, angle_of_inclination);		// untere Hälfte
 		mirror([0,0,1])
-			hohlrad(modul, zahnzahl, hoehe, randbreite, engagement_angle, angle_of_inclination);	// obere Hälfte
+			hohlrad(modul, number_of_teeth, height, randbreite, engagement_angle, angle_of_inclination);	// obere Hälfte
 	}
 }
 
-/*	Planetengetriebe; verwendet die Module "pfeilrad" und "pfeilhohlrad"
+/*	Planetengetriebe; verwendet die Module "arrow_wheel" und "pfeilhohlrad"
     modul = Höhe des Zahnkopfes über dem Teilkegel
     zahnzahl_sonne = Anzahl der Zähne des Sonnenrads
     zahnzahl_planet = Anzahl der Zähne eines Planetenrads
-    hoehe = Höhe des Zahnrads
+    height = Höhe des Zahnrads
 	randbreite = Breite des Randes ab Fußkreis
-    bohrung = Durchmesser der Mittelbohrung
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, hoehe, randbreite, bohrung, engagement_angle=20, angle_of_inclination=0){
+module planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, height, randbreite, bore, engagement_angle=20, angle_of_inclination=0){
 
 	// Dimensions-Berechnungen
 	d_sonne = modul*zahnzahl_sonne;										// Teilkreisdurchmesser Sonne
@@ -280,29 +280,29 @@ module planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, hoehe, randbreit
 	
 	// Zeichnung
 	rotate([0,0,180/zahnzahl_sonne*drehen]){
-		pfeilrad (modul, zahnzahl_sonne, hoehe, bohrung, engagement_angle, -angle_of_inclination);		// Sonnenrad
+		arrow_wheel (modul, zahnzahl_sonne, height, bore, engagement_angle, -angle_of_inclination);		// Sonnenrad
 	}
 
 	for(rot=[0:360/n_planeten:360/n_planeten*(n_planeten-1)]){
 		translate(kugel_zu_kart([achsabstand,90,rot]))
-			pfeilrad (modul, zahnzahl_planet, hoehe, bohrung, engagement_angle, angle_of_inclination);	// Planetenräder
+			arrow_wheel (modul, zahnzahl_planet, height, bore, engagement_angle, angle_of_inclination);	// Planetenräder
 		}
 	
-	pfeilhohlrad (modul, zahnzahl_hohlrad, hoehe, randbreite, engagement_angle, angle_of_inclination);	// Hohlrad
+	pfeilhohlrad (modul, zahnzahl_hohlrad, height, randbreite, engagement_angle, angle_of_inclination);	// Hohlrad
 }
 
 /*  Kegelrad
     modul = Höhe des Zahnkopfes über dem Teilkegel; Angabe für die Aussenseite des Kegels
-    zahnzahl = Anzahl der Radzähne
+    number_of_teeth = Anzahl der Radzähne
     teilkegelwinkel = (Halb)winkel des Kegels, auf dem das jeweils andere Hohlrad abrollt
     tooth_width = Breite der Zähne von der Außenseite in Richtung Kegelspitze
-    bohrung = Durchmesser der Mittelbohrung
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
 	angle_of_inclination = Schrägungswinkel, Standardwert = 0° */
-module kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engagement_angle = 20, angle_of_inclination=0) {
+module kegelrad(modul, number_of_teeth, teilkegelwinkel, tooth_width, bore, engagement_angle = 20, angle_of_inclination=0) {
 
 	// Dimensions-Berechnungen
-	d_aussen = modul * zahnzahl;									// Teilkegeldurchmesser auf der Kegelgrundfläche,
+	d_aussen = modul * number_of_teeth;									// Teilkegeldurchmesser auf der Kegelgrundfläche,
 																	// entspricht der Sehne im Kugelschnitt
 	r_aussen = d_aussen / 2;										// Teilkegelradius auf der Kegelgrundfläche 
 	rg_aussen = r_aussen/sin(teilkegelwinkel);						// Großkegelradius für Zahn-Außenseite, entspricht der Länge der Kegelflanke;
@@ -338,12 +338,12 @@ module kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engageme
 	gamma = 2*asin(rg_aussen/r_aussen*sin(gamma_g/2));
 	
 	schritt = (delta_a - delta_b)/16;
-	tau = 360/zahnzahl;												// Teilungswinkel
+	tau = 360/number_of_teeth;												// Teilungswinkel
 	start = (delta_b > delta_f) ? delta_b : delta_f;
-	spiegelpunkt = (180*(1-spiel))/zahnzahl+2*phi_r;
+	spiegelpunkt = (180*(1-spiel))/number_of_teeth+2*phi_r;
 
 	// Zeichnung
-	rotate([0,0,phi_r+90*(1-spiel)/zahnzahl]){						// Zahn auf x-Achse zentrieren;
+	rotate([0,0,phi_r+90*(1-spiel)/number_of_teeth]){						// Zahn auf x-Achse zentrieren;
 																	// macht Ausrichtung mit anderen Rädern einfacher
 		translate([0,0,hoehe_f]) rotate(a=[0,180,0]){
 			union(){
@@ -351,7 +351,7 @@ module kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engageme
 					difference(){
 						linear_extrude(height=hoehe_f-hoehe_fk, scale=rfk/rkf) circle(rkf);
 						translate([0,0,-1]){
-							cylinder(h = hoehe_f-hoehe_fk+2, r = bohrung/2);				// Bohrung
+							cylinder(h = hoehe_f-hoehe_fk+2, r = bore/2);				// Bohrung
 						}
 					}	
 				}
@@ -406,18 +406,18 @@ module kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engageme
 
 /*  Pfeil-Kegelrad; verwendet das Modul "kegelrad"
     modul = Höhe des Zahnkopfes über dem Teilkreis
-    zahnzahl = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
-    bohrung = Durchmesser der Mittelbohrung
+    number_of_teeth = Anzahl der Radzähne
+    height = Höhe des Zahnrads
+    bore = Durchmesser der Mittelbohrung
     engagement_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867
     angle_of_inclination = Schrägungswinkel, Standardwert = 0° */
-module pfeilkegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engagement_angle = 20, angle_of_inclination=0){
+module pfeilkegelrad(modul, number_of_teeth, teilkegelwinkel, tooth_width, bore, engagement_angle = 20, angle_of_inclination=0){
 
 	// Dimensions-Berechnungen
 	
 	tooth_width = tooth_width / 2;
 	
-	d_aussen = modul * zahnzahl;								// Teilkegeldurchmesser auf der Kegelgrundfläche,
+	d_aussen = modul * number_of_teeth;								// Teilkegeldurchmesser auf der Kegelgrundfläche,
 																// entspricht der Sehne im Kugelschnitt
 	r_aussen = d_aussen / 2;									// Teilkegelradius auf der Kegelgrundfläche 
 	rg_aussen = r_aussen/sin(teilkegelwinkel);					// Großkegelradius, entspricht der Länge der Kegelflanke;
@@ -443,10 +443,10 @@ module pfeilkegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, eng
 	modul_innen = modul-tooth_width/rg_aussen;
 
 		union(){
-		kegelrad(modul, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engagement_angle, angle_of_inclination);		// untere Hälfte
+		kegelrad(modul, number_of_teeth, teilkegelwinkel, tooth_width, bore, engagement_angle, angle_of_inclination);		// untere Hälfte
 		translate([0,0,hoehe_f-hoehe_fk])
 			rotate(a=-gamma,v=[0,0,1])
-				kegelrad(modul_innen, zahnzahl, teilkegelwinkel, tooth_width, bohrung, engagement_angle, -angle_of_inclination);	// obere Hälfte
+				kegelrad(modul_innen, number_of_teeth, teilkegelwinkel, tooth_width, bore, engagement_angle, -angle_of_inclination);	// obere Hälfte
 	}
 }
 
@@ -558,22 +558,26 @@ module arrow_bevel_gear_pair(modul, tooth_number_wheel, tooth_number_curve, axis
 
 }
 
-// stirnrad (modul=1, zahnzahl=30, hoehe=5, bohrung=0, engagement_angle=20, angle_of_inclination=20);
+translate([0,0,-7])
+spur_gear(modul=1, number_of_teeth=30, height=5, bore=0, engagement_angle=20, angle_of_inclination=0);
 
-// pfeilrad (modul=1, zahnzahl=30, hoehe=5, bohrung=4, engagement_angle=20, angle_of_inclination=30);
+rotate([0,0,5.5])
+color("red")
+arrow_wheel(modul=1, number_of_teeth=30, height=5, bore=4, engagement_angle=20, angle_of_inclination=30);
 
-// hohlrad (modul=1, zahnzahl=30, hoehe=5, randbreite=5, engagement_angle=20, angle_of_inclination=20);
+//hohlrad (modul=1, number_of_teeth=30, height=5, randbreite=5, engagement_angle=20, angle_of_inclination=20);
 
-// pfeilhohlrad (modul=1, zahnzahl=30, hoehe=5, randbreite=5, engagement_angle=20, angle_of_inclination=30);
+//pfeilhohlrad (modul=1, number_of_teeth=30, height=5, randbreite=5, engagement_angle=20, angle_of_inclination=30);
 
-// planetengetriebe(modul=1, zahnzahl_sonne=15, zahnzahl_planet=12, hoehe=6, randbreite=5, bohrung=4, engagement_angle=20, angle_of_inclination=30);
+//planetengetriebe(modul=1, zahnzahl_sonne=15, zahnzahl_planet=12, height=6, randbreite=5, bore=4, engagement_angle=20, angle_of_inclination=30);
 
-// kegelrad(modul=1, zahnzahl=30,  teilkegelwinkel=45, tooth_width=5, bohrung=4, engagement_angle=20, angle_of_inclination=20);
+//kegelrad(modul=1, number_of_teeth=30,  teilkegelwinkel=45, tooth_width=5, bore=4, engagement_angle=20, angle_of_inclination=20);
 
-// pfeilkegelrad(modul=1, zahnzahl=30, teilkegelwinkel=45, tooth_width=5, bohrung=4, engagement_angle=20, angle_of_inclination=30);
+//pfeilkegelrad(modul=1, number_of_teeth=30, teilkegelwinkel=45, tooth_width=5, bore=4, engagement_angle=20, angle_of_inclination=30);
 
-// kegelradpaar(modul=1, tooth_number_wheel=30, tooth_number_curve=11, axis_angle=100, tooth_width=5, bohrung=4, engagement_angle = 20, angle_of_inclination=20, together_build=1);
+//kegelradpaar(modul=1, tooth_number_wheel=30, tooth_number_curve=11, axis_angle=100, tooth_width=5, bore=4, engagement_angle = 20, angle_of_inclination=20, together_build=1);
 
+/*
 arrow_bevel_gear_pair(
     modul=1,
     tooth_number_wheel=110,
@@ -587,6 +591,4 @@ arrow_bevel_gear_pair(
     angle_of_inclination=20,
     //angle_of_inclination=45,
     together_build=1);
-
-
-
+*/
