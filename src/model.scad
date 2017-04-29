@@ -577,52 +577,101 @@ module water_guide_holes(){
 }
 
 module water_wheel(show_axle=1){
-    difference(){
-        union(){
-            // blades
-            for(i=[0:30:360])
-            color("red")
-            rotate([0,i,0])
-            //translate([0,-26+5,0])
-            translate([0,0,-17])
-            rotate([0,50,0])
-            translate([0,0,1+3])
-            cube([1, 60, 15+6], center=true);
+    blade_extend = 4.5;
+    end_cap_d = 44;
+    rotate([0,7,0]){
+        intersection(){
+            union(){
+                difference(){
+                    union(){
+                        // blades
+                        for(i=[0:30:360])
+                        color("red")
+                        rotate([0,i,0])
+                        //translate([0,-26+5,0])
+                        translate([0,0,-17])
+                        rotate([0,50,0])
+                        translate([0,0,1+3-blade_extend/2])
+                        cube([1, 60, 15+6+blade_extend], center=true);
+                        
+                        // inner wall
+                        //color("green") translate([0,0,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=60, center=true);
+                        
+                        // end cap
+                        for(i=[0:1]) mirror([0,i,0])color("green") translate([0,30,0]) rotate([90,0,0]) cylinder(d=end_cap_d+7, h=1, center=true);
+                        
+                        // output gear
+                        translate([0,-30.5-1,0])
+                        //rotate([0,27,0])
+                        rotate([90,0,0])
+                        translate([0,0,0])
+                        arrow_wheel(
+                        //spur_gear(
+                            modul=1, number_of_teeth=small_gear_teeth, height=3, bore=0, angle_of_inclination=angle_of_inclination);
+                        
+                        // gear extension support
+                        color("purple")
+                        translate([0,-30.5,0])
+                        rotate([90,0,0])
+                        translate([0,0,0])
+                        cylinder(d=11, h=1);
+                    
+                    }
+
+                    rotate([90,0,0])
+                    color("red")
+                    cylinder(d=gear_axle_d, h=100, center=true);
+                
+                    union(){
+                        // end cutoff so wheel doesn't hit idler axle
+                        translate([0,27.5,0])
+                        rotate([90,0,0])
+                        tube(d=56, t=56-5.5-end_cap_d, h=6.1, center=true);
+                        
+                        // tapered cutoff so wheel doesn't hit idler
+                        color("blue")
+                        translate([0,27.5-2.5-5,0])
+                        rotate([90,0,0])
+                        tube_cone(d1=56, d2=56+10, t=56-5.5-end_cap_d, h=10, center=true);
+                    }
+                    
+            // interior axle spoke cutout
+            difference(){
+                rotate([90,0,0])
+                tube(d=25, t=8.75-2, h=100, center=true);
+                for(i=[0:1])
+                rotate([0,90*i,0])cube([3,101,100],center=true);
+            }
+                    
+                }// end diff
+
+                // end cutoff wall
+                union(){
+                    // end cutoff so wheel doesn't hit idler axle
+                    translate([0,27.5,0])
+                    rotate([90,0,0])
+                    tube(d=end_cap_d+1, t=1, h=6.1, center=true);
+                    
+                    // tapered cutoff so wheel doesn't hit idler
+                    color("blue")
+                    translate([0,27.5-2.5-5,0])
+                    rotate([90,0,0])
+                    tube_cone(d1=end_cap_d+1, d2=end_cap_d+1+10, t=1, h=10, center=true);
+                }
+            }
             
-            // inner wall
-            //color("green") translate([0,0,0]) rotate([90,0,0]) tube(d=27.5, t=1, h=60, center=true);
-            
-            // end cap
-            for(i=[0:1]) mirror([0,i,0])
-            color("green") translate([0,30,0]) rotate([90,0,0]) cylinder(d=44, h=1, center=true);
-            
-            // output gear
-            translate([0,-30.5-1,0])
-            //rotate([0,27,0])
-            rotate([90,0,0])
-            translate([0,0,0])
-            arrow_wheel(
-            //spur_gear(
-                modul=1, number_of_teeth=small_gear_teeth, height=3, bore=0, angle_of_inclination=angle_of_inclination);
-            
-            // gear extension support
-            color("purple")
-            translate([0,-30.5,0])
-            rotate([90,0,0])
-            translate([0,0,0])
-            cylinder(d=11, h=1);
-        
+            // overall bounding shape
+            rotate([90,0,0])cylinder(d=end_cap_d+7.5, h=100, center=true);
         }
+
+        // interior axle wall
+        rotate([90,0,0])tube(d=11.5, t=1, h=60.5, center=true);
+
+        if(show_axle)
         rotate([90,0,0])
         color("red")
-        cylinder(d=gear_axle_d, h=100, center=true);
-        
+        cylinder(d=.5, h=100, center=true);
     }
-    
-    if(show_axle)
-    rotate([90,0,0])
-    color("red")
-    cylinder(d=.5, h=100, center=true);
 }
 
 module flat_middle_gear(flip=0){
@@ -666,6 +715,46 @@ module middle_gear(){
     }
 }
 
+module water_trough(width=63, height=17+12, depth=30, thickness=1){
+    difference(){
+        union(){
+            difference(){
+                color("purple")
+                translate([0,0,height/2])
+                cube([depth, width, height], center=true);
+             
+                color("red")
+                translate([15,0,55.5-26.6])
+                rotate([90,0,0])
+                cylinder(d=52.25, h=width-1.25, center=true);   
+                
+                color("red")
+                translate([15,0,55.5-26.6])
+                rotate([90,0,0])
+                cylinder(d=30, h=width*2, center=true);
+            }
+            translate([-12.5,0,6.5]){
+                difference(){
+                    cube([5,63+10,2.5], center=true);
+                    
+                    color("red")
+                    for(i=[0:1])
+                    mirror([0,i,0])
+                    translate([0,31.5+2.5,0])
+                    cylinder(d=2, h=100, center=true);
+                }
+                
+            }
+        }
+        
+        // useless mass removal
+        translate([-12.5,0,6.5])
+        color("green")
+        rotate([0,45,0])
+        cube([50,width-5,15],center=true);
+    }
+}
+
 //intersection(){
 // main turntable top
 if(0)
@@ -677,8 +766,8 @@ difference(){
         }
         //rotate([0,180,0]) make_gears(a=1, b=0);//TODO:enable
     }
-    color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
-    color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
+    //color("red")translate([0,-200/2,-200/2]) cube([200,200,200]);
+    color("red")rotate([0,0,-90])translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
 //color([0,0,1,0.25])
@@ -691,37 +780,39 @@ if(0){
     rotate([0,0,120*2]) rotate([0,180,0]) make_drive_gear(simple=1);
 }
 
-if(0)
-rotate([0,0,120]) rotate([0,180,0]) make_idler_gear();
+if(0){
+    //rotate([0,0,120]) rotate([0,180,0]) make_idler_gear();
+    rotate([0,0,-60]) translate([0,diameter/2-12,-27]) rotate([90,0,0]) import("../parts/idler.stl");
+}
 
 if(0)
 translate([0,0,-3.5])water_guide();
 
 // mockup of turntable top outline
 if(0) translate([5,0,-6]) difference(){
-turntable_mesh_outline_top();
-color("blue")translate([0,-200/2,-200/2]) cube([200,200,200]);
+    turntable_mesh_outline_top();
+    color("blue")translate([0,-200/2,-200/2]) cube([200,200,200]);
 }
 
 if(0) translate([0,0,-3-roller_diameter/2-gap/2]) difference(){
-color("green") turntable_roller_ring();
-translate([1,-200/2,-200/2]) cube([200,200,200]);
+    color("green") turntable_roller_ring();
+    translate([1,-200/2,-200/2]) cube([200,200,200]);
 }
 
 // mockup of turntable bottom outline
 if(0) translate([0,0,-57-gap]) difference(){
-turntable_mesh_outline_bottom();
-color("blue")translate([2,-200/2,-200/2]) cube([200,200,200]);
+    turntable_mesh_outline_bottom();
+    color("blue")translate([2,-200/2,-200/2]) cube([200,200,200]);
 }
 
-if(1) //difference(){
+if(1) difference(){
     //translate([0,0,-100])//TODO:remove
     turntable_base_complete(simple=1);
     //intersection(){
     //    translate([0,0,-(30+gap)]) turntable_base();
     //    translate([0,0,-57-gap]) turntable_mesh_outline_bottom();
     //}
-    //color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
+    color("red")rotate([0,0,180])translate([0,-200/2,-200/2]) cube([200,200,200]);
     //color("red")rotate([0,0,90])translate([0,-200/2,-200/2]) cube([200,200,200]);
     /*
     translate([0,0,-26.6])
@@ -731,27 +822,31 @@ if(1) //difference(){
     */
     //arch_recess_cutout(count=arch_angle);//test
     //arch_recess_cutout();//production
-//}
+}
 
 if(1)
     translate([15,0,-26.6]){
         //water_wheel(show_axle=1);
-        rotate([90,0,0])
-        import("../parts/wheel.stl");
+        rotate([0,10,0])rotate([90,0,0])import("../parts/wheel.stl");
     }
 
 if(1)
-translate([0,-1,-26.6])
-//translate([0,-1,0])
-//rotate([0,-90,0])
-//translate([0,0,9])
-rotate([0,0,0])
-middle_gear();
+    translate([0,-1,-26.6])
+    //translate([0,-1,0])
+    //rotate([0,-90,0])
+    //translate([0,0,9])
+    rotate([0,0,0])
+    middle_gear();
 
 if(1)
-translate([15,-1-6,-26.6])
-//translate([0,-1,0])
-//rotate([0,-90,0])
-//translate([0,0,9])
-rotate([0,0,0])
-middle_gear();
+    translate([15,-1-6,-26.6])
+    //translate([0,-1,0])
+    //rotate([0,-90,0])
+    //translate([0,0,9])
+    rotate([0,0,0])
+    middle_gear();
+
+if(1)
+    //translate([15,0,-26.6]){
+    translate([0,0,-55.5])
+    water_trough();
