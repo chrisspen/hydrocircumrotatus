@@ -715,18 +715,22 @@ module middle_gear(){
     }
 }
 
-module water_trough(width=63, height=17+12, depth=30, thickness=1){
+module water_trough(width=63, height=17+12+21, depth=30, thickness=1){
+    wheel_cutout_d = 52.25;
+    wheel_cutout_h = width-1.25;
     difference(){
         union(){
             difference(){
+                // main mass
                 color("purple")
                 translate([0,0,height/2])
                 cube([depth, width, height], center=true);
              
+                // main wheel cutout
                 color("red")
                 translate([15,0,55.5-26.6])
                 rotate([90,0,0])
-                cylinder(d=52.25, h=width-1.25, center=true);   
+                cylinder(d=wheel_cutout_d, h=wheel_cutout_h, center=true);   
                 
                 color("red")
                 translate([15,0,55.5-26.6])
@@ -752,7 +756,22 @@ module water_trough(width=63, height=17+12, depth=30, thickness=1){
         color("green")
         rotate([0,45,0])
         cube([50,width-5,15],center=true);
+    
+        // top wheel cutout
+        difference(){
+            color("red")
+            translate([15,0,55.5-26.6])
+            translate([0,0,50/2])
+            cube([wheel_cutout_d,wheel_cutout_h,50], center=true);    
+            
+            color("red")
+            translate([0,18,100/2])
+            cube([100, 1, 100], center=true);
+        }
     }
+    
+    
+    
 }
 
 //intersection(){
